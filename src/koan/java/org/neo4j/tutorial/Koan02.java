@@ -8,12 +8,7 @@ import static org.junit.Assert.fail;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 
 /**
  * This first programming Koan will get you started with the basics of managing
@@ -48,7 +43,17 @@ public class Koan02
     {
         Node node = null;
 
-        // YOUR CODE GOES HERE
+        Transaction tx = db.beginTx();
+        try
+        {
+            node = db.createNode();
+            // Updating operations go here
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
         assertTrue( databaseHelper.nodeExistsInDatabase( node ) );
     }
@@ -58,7 +63,20 @@ public class Koan02
     {
         Node theDoctor = null;
 
-        // YOUR CODE GOES HERE
+        Transaction tx = db.beginTx();
+        try
+        {
+            theDoctor = db.createNode();
+            theDoctor.setProperty("firstname", "William");
+            theDoctor.setProperty("lastname", "Hartnell");
+            // Updating operations go here
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
 
         assertTrue( databaseHelper.nodeExistsInDatabase( theDoctor ) );
 
@@ -74,7 +92,29 @@ public class Koan02
         Node susan = null;
         Relationship companionRelationship = null;
 
-        // YOUR CODE GOES HERE
+        Transaction tx = db.beginTx();
+        try
+        {
+            theDoctor = db.createNode();
+            theDoctor.setProperty("firstname", "William");
+            theDoctor.setProperty("lastname", "Hartnell");
+
+            susan = db.createNode();
+
+
+
+            companionRelationship = susan.createRelationshipTo(theDoctor, new RelationshipType() {
+                @Override
+                public String name() {
+                    return "KNOWS";
+                }
+            });
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
         Relationship storedCompanionRelationship = db.getRelationshipById( companionRelationship.getId() );
         assertNotNull( storedCompanionRelationship );
@@ -88,7 +128,20 @@ public class Koan02
         /* Captain Kirk has no business being in our database, so set phasers to kill */
         Node captainKirk = createPollutedDatabaseContainingStarTrekReferences();
 
-        // YOUR CODE GOES HERE
+        Transaction tx = db.beginTx();
+        try
+        {
+            for(Relationship relationship : captainKirk.getRelationships()){
+                relationship.delete();
+            };
+            captainKirk.delete();
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
 
         try
         {
@@ -108,7 +161,17 @@ public class Koan02
     {
         Node susan = createInaccurateDatabaseWhereSusanIsEnemyOfTheDoctor();
 
-        // YOUR CODE GOES HERE
+        Transaction tx = db.beginTx();
+        try
+        {
+            susan.getRelationships(DoctorWhoRelationships.ENEMY_OF).iterator().next().delete();
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
         assertEquals( 1, databaseHelper.destructivelyCountRelationships( susan.getRelationships() ) );
     }
 
