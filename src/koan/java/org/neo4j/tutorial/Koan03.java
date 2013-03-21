@@ -10,11 +10,7 @@ import static org.neo4j.tutorial.matchers.ContainsSpecificCompanions.contains;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.NotFoundException;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 
@@ -27,11 +23,13 @@ public class Koan03
 {
 
     private static EmbeddedDoctorWhoUniverse universe;
+    private static GraphDatabaseService database;
 
     @BeforeClass
     public static void createDatabase() throws Exception
     {
         universe = new EmbeddedDoctorWhoUniverse( new DoctorWhoUniverseGenerator() );
+        database = universe.getDatabase();
     }
 
     @AfterClass
@@ -45,6 +43,17 @@ public class Koan03
     {
         Index<Node> characters = null;
 
+        Transaction tx = database.beginTx();
+        try
+        {
+            characters = database.index().forNodes("characters");
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
         // YOUR CODE GOES HERE
 
         assertNotNull( characters );
@@ -57,17 +66,26 @@ public class Koan03
     @Test
     public void addingToAnIndexShouldBeHandledAsAMutatingOperation()
     {
-        GraphDatabaseService db = universe.getDatabase();
-        Node abigailPettigrew = createAbigailPettigrew( db );
+        Node abigailPettigrew = createAbigailPettigrew( database );
 
-        assertNull( db.index()
+        assertNull( database.index()
                 .forNodes( "characters" )
                 .get( "character", "Abigail Pettigrew" )
                 .getSingle() );
 
-        // YOUR CODE GOES HERE
+        Transaction tx = database.beginTx();
+        try
+        {
+            Index<Node> characters = database.index().forNodes("characters");
+            characters.add(abigailPettigrew, "character", "Abigail Pettigrew");
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
-        assertNotNull( db.index()
+        assertNotNull( database.index()
                 .forNodes( "characters" )
                 .get( "character", "Abigail Pettigrew" )
                 .getSingle() );
@@ -78,7 +96,16 @@ public class Koan03
     {
         IndexHits<Node> species = null;
 
-        // YOUR CODE GOES HERE
+        Transaction tx = database.beginTx();
+        try
+        {
+            species = database.index().forNodes("species").query("species", "S*n");
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
         assertThat( species, containsOnlySpecies( "Silurian", "Slitheen", "Sontaran", "Skarasen" ) );
     }
@@ -94,7 +121,20 @@ public class Koan03
         GraphDatabaseService db = universe.getDatabase();
         Node cyberleader = retriveCyberleaderFromIndex( db );
 
-        // YOUR CODE GOES HERE
+        Transaction tx = database.beginTx();
+        try
+        {
+            database.index().forNodes("characters").remove(cyberleader, "character", "Cyberleader");
+            for(Relationship relationship : cyberleader.getRelationships()){
+                relationship.delete();
+            }
+            cyberleader.delete();
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
 
         assertNull( "Cyberleader has not been deleted from the characters index.", retriveCyberleaderFromIndex( db ) );
 
