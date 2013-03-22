@@ -33,9 +33,11 @@ public class Koan08d
     {
         polluteUniverseWithStarTrekData();
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[r:COMPANION_OF]- companion -[r2?]-()\n" +
+                     "WHERE  companion.lastname! = 'Kirk' \n" +
+                     "DELETE r2, r, companion";
 
         engine.execute( cql );
 
@@ -49,9 +51,10 @@ public class Koan08d
     {
         polluteUniverseWithStarTrekData();
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[:PLAYED]- actor \n" +
+                     "DELETE actor.salary";
 
         engine.execute( cql );
 

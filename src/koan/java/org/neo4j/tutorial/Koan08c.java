@@ -43,9 +43,11 @@ public class Koan08c
     public void shouldReturnAnyWikpediaEntriesForCompanions()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[:COMPANION_OF]- companion \n" +
+                     "WHERE  has(companion.wikipedia) \n" +
+                     "RETURN companion.wikipedia";
 
         ExecutionResult result = engine.execute( cql );
         Iterator<String> iterator = result.javaColumnAs( "companion.wikipedia" );
@@ -60,9 +62,10 @@ public class Koan08c
     public void shouldCountTheNumberOfActorsKnownToHavePlayedTheDoctor()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[:PLAYED]- actor \n" +
+                     "RETURN count(actor) as numberOfActorsWhoPlayedTheDoctor";
 
         ExecutionResult result = engine.execute( cql );
         Long actorsCount = (Long) result.javaColumnAs( "numberOfActorsWhoPlayedTheDoctor" ).next();
@@ -74,9 +77,10 @@ public class Koan08c
     public void shouldFindEarliestAndLatestRegenerationYears()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[:PLAYED]- actor <-[r:REGENERATED_TO]- () \n" +
+                     "RETURN min(r.year) as earliest, max(r.year) as latest";
 
         ExecutionResult result = engine.execute( cql );
 
@@ -90,9 +94,11 @@ public class Koan08c
     public void shouldFindTheEarliestEpisodeWhereFreemaAgyemanAndDavidTennantWorkedTogether() throws Exception
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  freema = node:characters(character = 'Freema Agyeman'), \n" +
+                     "       david  = node:actors(actor = 'David Tennant') \n" +
+                     "MATCH  freema -[:PLAYED]-> () -[:APPEARED_IN]-> episode <-[:APPEARED_IN]- david \n" +
+                     "RETURN min(episode.episode) as earliest";
 
         ExecutionResult result = engine.execute( cql );
 
@@ -103,9 +109,10 @@ public class Koan08c
     public void shouldFindAverageSalaryOfActorsWhoPlayedTheDoctor()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor') \n" +
+                     "MATCH  doctor <-[:PLAYED]- actor \n" +
+                     "RETURN avg(actor.salary?) as cash";
 
         ExecutionResult result = engine.execute( cql );
 
@@ -116,11 +123,18 @@ public class Koan08c
     public void shouldListTheEnemySpeciesAndCharactersForEachEpisodeWithPeterDavisonOrderedByIncreasingEpisodeNumber()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  doctor = node:characters(character = 'Doctor')," +
+                "            peter = node:actors(actor = 'Peter Davison') " +
+                     "MATCH  enemy -[:APPEARED_IN]-> episode <-[:APPEARED_IN]- peter -[:PLAYED]-> doctor <-[:ENEMY_OF]- enemy \n" +
+                     "RETURN episode.episode, " +
+                "            episode.title, " +
+                "            collect(enemy.species?) as species, " +
+                "            collect(enemy.character?) as characters" +
+                "     ORDER BY episode.episode";
 
         ExecutionResult result = engine.execute( cql );
+        System.out.println(result.dumpToString());
 
         final List<String> columnNames = result.javaColumns();
         assertThat( columnNames,
@@ -133,12 +147,15 @@ public class Koan08c
     public void shouldFindTheEnemySpeciesThatRoseTylerFought()
     {
         ExecutionEngine engine = new ExecutionEngine( universe.getDatabase() );
-        String cql = null;
 
-        // YOUR CODE GOES HERE
+        String cql = "START  rose = node:characters(character = 'Rose Tyler') "+
+                "     MATCH  enemy -[:APPEARED_IN]-> episode <-[:APPEARED_IN]- rose \n" +
+                "     WHERE  has(enemy.species) \n" +
+                "     RETURN DISTINCT enemy.species as enemySpecies";
 
         ExecutionResult result = engine.execute( cql );
         Iterator<String> enemySpecies = result.javaColumnAs( "enemySpecies" );
+        System.out.println(result.dumpToString());
 
         assertThat( asIterable( enemySpecies ),
                 containsOnlySpecificStrings( "Krillitane", "Sycorax", "Cyberman", "Dalek", "Auton", "Slitheen",

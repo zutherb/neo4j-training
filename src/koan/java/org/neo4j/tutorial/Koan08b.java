@@ -117,6 +117,7 @@ public class Koan08b {
                      "RETURN individual";
 
         ExecutionResult result = engine.execute(cql);
+        System.out.println(result.dumpToString());
 
         assertEquals(158, result.size());
     }
