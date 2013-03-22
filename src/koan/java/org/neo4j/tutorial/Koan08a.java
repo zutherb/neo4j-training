@@ -17,9 +17,7 @@ public class Koan08a
     public void shouldCreateASingleNode()
     {
         ExecutionEngine engine = new ExecutionEngine( DatabaseHelper.createDatabase() );
-        String cql = null;
-
-        // YOUR CODE GOES HERE
+        String cql = "CREATE n";
 
         engine.execute( cql );
 
@@ -33,9 +31,7 @@ public class Koan08a
     public void shouldCreateASingleNodeWithSomeProperties()
     {
         ExecutionEngine engine = new ExecutionEngine( DatabaseHelper.createDatabase() );
-        String cql = null;
-
-        // YOUR CODE GOES HERE
+        String cql = "CREATE n = {firstname : 'Tom', lastname : 'Baker'}";
 
         engine.execute( cql );
 
@@ -49,9 +45,8 @@ public class Koan08a
     public void shouldCreateASimpleConnectedGraph()
     {
         ExecutionEngine engine = new ExecutionEngine( DatabaseHelper.createDatabase() );
-        String cql = null;
-
-        // YOUR CODE GOES HERE
+        String cql = "CREATE p = (a {character:'Doctor'})<-[:ENEMY_OF]-(b {character:'Master'}) \n" +
+                     "RETURN p";
 
         engine.execute( cql );
 
